@@ -17,8 +17,8 @@ jobs:
               with:
                   go-version: 1.20
 
-            - name: Set up GOPATH
-              run: go mod tidy
+#            - name: Set up GOPATH
+#              run:
 
             - name: Build
               run: go build -o build/go-app.exe -v ./internal/*
