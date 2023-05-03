@@ -17,11 +17,11 @@ jobs:
               with:
                   go-version: 1.20
 
-#            - name: Set up GOPATH
-#              run: go install
+            - name: Set up GOPATH
+              run: go mod tidy
 
             - name: Build
-              run: go build -o build/go-app.exe -v
+              run: go build -o build/go-app.exe -v ./internal/*
 
             - name: Deploy to Azure
               uses: Azure/webapps-deploy@v2
