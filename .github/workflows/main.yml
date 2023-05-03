@@ -18,7 +18,7 @@ jobs:
               run: mkdir bin # tambahkan perintah untuk membuat direktori bin
 
             - name: Build Go app
-              run: go build -v -o ./bin/main
+              run: go build -v -o build/main
 
             - name: Publish to Azure Web App
               uses: azure/webapps-deploy@v2
@@ -26,4 +26,4 @@ jobs:
                   app-name: stima-gogo
                   # slot-name: <nama-slot> # opsional, jika ingin deploy ke slot
                   publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-                  package: ./bin/main
+                  package: build/
