@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"os"
 	"tubes3-chatbjorka-backend/internal/route"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -10,5 +12,11 @@ func main() {
 
 	route.Routes(r)
 
-	r.Run(":8080") // listen and serve on 0.0.0.0:8080
+	port := os.Getenv("HTTP_PLATFORM_PORT")
+
+	if port == "" {
+		port = "8080"
+	}
+
+	r.Run(":" + port) // listen and serve on 0.0.0.0:8080
 }
