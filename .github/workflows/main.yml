@@ -16,7 +16,7 @@ jobs:
                   go-version: 1.19
 
             - name: Build Go app
-              run: go build -o main
+              run: go build -v -o ./bin/main
 
             - name: Publish to Azure Web App
               uses: azure/webapps-deploy@v2
@@ -24,4 +24,4 @@ jobs:
                   app-name: stima-gogo
                   # slot-name: <nama-slot> # opsional, jika ingin deploy ke slot
                   publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-                  package: ./main
+                  package: ./bin/main
