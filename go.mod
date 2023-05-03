@@ -1,6 +1,6 @@
-module github.com/rizkyrsyd28/Tubes3_ChatBjorka_Backend
+module github.com/rizkyrsyd28
 
-go 1.20
+go 1.19
 
 require (
 	github.com/georgysavva/scany/v2 v2.0.0

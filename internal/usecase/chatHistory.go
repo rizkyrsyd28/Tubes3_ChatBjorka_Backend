@@ -1,8 +1,8 @@
 package usecase
 
 import (
+	"github.com/rizkyrsyd28/internal/entity"
 	"golang.org/x/net/context"
-	"tubes3-chatbjorka-backend/internal/entity"
 )
 
 type ChatHistoryUseCase interface {

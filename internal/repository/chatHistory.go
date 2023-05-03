@@ -3,8 +3,8 @@ package repository
 import (
 	"fmt"
 	"github.com/georgysavva/scany/v2/pgxscan"
+	"github.com/rizkyrsyd28/internal/entity"
 	"golang.org/x/net/context"
-	"tubes3-chatbjorka-backend/internal/entity"
 )
 
 type ChatHistoryRepo interface {

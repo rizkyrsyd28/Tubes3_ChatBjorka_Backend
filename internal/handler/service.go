@@ -2,9 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyrsyd28/internal/usecase"
 	"net/http"
 	"strconv"
-	"tubes3-chatbjorka-backend/internal/usecase"
 )
 
 func GetChatHistory(uc usecase.ChatHistoryUseCase) gin.HandlerFunc {

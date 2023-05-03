@@ -1,6 +1,6 @@
 package usecase
 
-import "tubes3-chatbjorka-backend/internal/repository"
+import "github.com/rizkyrsyd28/internal/repository"
 
 type UseCase interface {
 	HistoryUseCase

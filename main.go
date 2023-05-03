@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/rizkyrsyd28/internal/route"
 	"os"
-	"tubes3-chatbjorka-backend/internal/route"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,7 +11,6 @@ func main() {
 	r := gin.Default()
 
 	route.Routes(r)
-
 	port := os.Getenv("HTTP_PLATFORM_PORT")
 
 	if port == "" {

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
+	"github.com/rizkyrsyd28/internal/handler"
+	"github.com/rizkyrsyd28/internal/repository"
+	"github.com/rizkyrsyd28/internal/usecase"
 	"os"
-	"tubes3-chatbjorka-backend/internal/handler"
-	"tubes3-chatbjorka-backend/internal/repository"
-	"tubes3-chatbjorka-backend/internal/usecase"
 )
 
 func Routes(r *gin.Engine) {

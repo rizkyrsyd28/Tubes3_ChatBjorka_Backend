@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyrsyd28/internal/usecase"
 	"net/http"
-	"tubes3-chatbjorka-backend/internal/usecase"
 )
 
 func GetAllHistory(uc usecase.UseCase) gin.HandlerFunc {
