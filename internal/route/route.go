@@ -22,9 +22,19 @@ func Routes(r *gin.Engine) {
 	repo := repository.NewRepo(conn)
 	ucase := usecase.NewUseCase(repo)
 
-	r.GET("/history/:uuid", handler.GetAllHistory(ucase))
-	r.DELETE("/history/:uuid", handler.DeleteHistory(ucase))
-	r.GET("/chat_history/:uuid/:id", handler.GetChatHistory(ucase))
-	//r.GET("/:id/bot_respond", handler.GetBotRespond())
-	//r.POST("/:id/user_respond", handler.PostBotPrompt())
+	// No 1
+	r.GET("/history/:id_user", handler.GetAllHistory(ucase))
+
+	// No 2
+	r.GET("/chat_history/:id_title", handler.GetChatHistory(ucase))
+
+	// No 3
+	r.POST("/user_respond/:id_user/:id_title", handler.PostUserRespond())
+
+	// No 5
+	r.DELETE("/history/:id_title", handler.DeleteHistory(ucase))
+
+	// No 4
+	r.POST("/history/:id_title") // Rename
+
 }

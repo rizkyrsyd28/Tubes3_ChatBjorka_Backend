@@ -8,33 +8,26 @@ import (
 )
 
 type HistoryRepo interface {
-	GetAllHistory(c context.Context, uuid string) ([]entity.History, error)
-	GetHistoryById(c context.Context, id int) (entity.History, error)
-	AddHistory(c context.Context, title string) error
-	DelHistoryById(c context.Context, id int, uuid string) error
-	//RenameHistoryById(c context.Context, id int) error
+	GetAllHistory(c context.Context, idUser string) ([]entity.History, error)
+	AddHistory(c context.Context, idTitle string, title string, idUser string) error
+	DelHistoryById(c context.Context, idTitle string) error
+	SetTitleById(c context.Context, idTitle string, newTitle string) error
 }
 
-func (r repo) GetAllHistory(c context.Context, uuid string) ([]entity.History, error) {
+func (r repo) GetAllHistory(c context.Context, idUser string) ([]entity.History, error) {
 	result := make([]entity.History, 0)
-	const query = "SELECT * FROM title_history WHERE uuid = $1"
-	err := pgxscan.Select(c, r.db, &result, query, uuid)
+	const query = "SELECT * FROM title_history WHERE id_user = $1"
+	err := pgxscan.Select(c, r.db, &result, query, idUser)
 	if err != nil {
 		return nil, err
 	}
 	return result, nil
 }
 
-func (r repo) GetHistoryById(c context.Context, id int) (result entity.History, err error) {
-	const query = "SELECT * FROM title_history WHERE id=$1"
-	err = pgxscan.Select(c, r.db, &result, query, id)
-	return result, err
-}
-
-func (r repo) AddHistory(c context.Context, title string) error {
-	var id int
-	const query = "INSERT INTO title_history (title, uuid) VALUES ($1, $2) RETURNING id_title"
-	err := r.db.QueryRow(c, query, title).Scan(&id)
+func (r repo) AddHistory(c context.Context, idTitle string, title string, idUser string) error {
+	var id string
+	const query = "INSERT INTO title_history (id_title, title, id_user) VALUES ($1, $2, $3) RETURNING id_title"
+	err := r.db.QueryRow(c, query, idTitle, title, idUser).Scan(&id)
 	if err != nil {
 		fmt.Printf("AddRepo, Result : %s", err.Error())
 		return err
@@ -42,17 +35,21 @@ func (r repo) AddHistory(c context.Context, title string) error {
 	return nil
 }
 
-func (r repo) DelHistoryById(c context.Context, id int, uuid string) error {
+func (r repo) DelHistoryById(c context.Context, idTitle string) error {
 	fmt.Println("Masuk Repo History")
-	const query = "DELETE FROM title_history WHERE id_title=$1 AND uuid=$2"
-	_, err := r.db.Exec(c, query, id, uuid)
+	const query = "DELETE FROM title_history WHERE id_title=$1"
+	_, err := r.db.Exec(c, query, idTitle)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//func (r repo) RenameHistoryById(c context.Context, id int, newTitle string) error {
-//	const query = ""
-//	return nil
-//}
+func (r repo) SetTitleById(c context.Context, idTitle string, newTitle string) error {
+	const query = "UPDATE title_history SET title=$1 WHERE id_title=$2"
+	_, err := r.db.Exec(c, query, newTitle, idTitle)
+	if err != nil {
+		return err
+	}
+	return nil
+}

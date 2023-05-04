@@ -11,30 +11,22 @@ func GetAllHistory(uc usecase.UseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		fmt.Printf("\nRequestType : %s\n", c.Request.Method)
 		//var data []entity.History
-		uuid := c.Param("uuid")
-		data, err := uc.GetAllHistory(c.Copy().Request.Context(), uuid)
+		idUser := c.Param("id_user")
+		data, err := uc.GetAllHistory(c.Copy().Request.Context(), idUser)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"history": data})
+		c.JSON(http.StatusOK, gin.H{"historyTitle": data})
 	}
 }
 
 func DeleteHistory(uc usecase.UseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var data struct {
-			Index int `json:"index"`
-		}
 
-		uuid := c.Param("uuid")
+		idTitle := c.Param("id_title")
 
-		if err := c.ShouldBindJSON(&data); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		fmt.Printf("Index %d dihapus\n", data.Index)
-		err := uc.DelHistoryById(c.Copy().Request.Context(), data.Index, uuid)
+		err := uc.DelHistoryById(c.Copy().Request.Context(), idTitle)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
 			return
@@ -42,3 +34,11 @@ func DeleteHistory(uc usecase.UseCase) gin.HandlerFunc {
 		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
 	}
 }
+
+//func RenameTitle(uc usecase.UseCase) gin.HandlerFunc {
+//	return func(c *gin.Context) {
+//		idTitle := c.Param("id_title")
+//
+//		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
+//	}
+//}

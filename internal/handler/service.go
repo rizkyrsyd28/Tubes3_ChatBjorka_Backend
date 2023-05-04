@@ -2,23 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rizkyrsyd28/internal/usecase"
 	"net/http"
 	"strconv"
 )
-
-func GetChatHistory(uc usecase.ChatHistoryUseCase) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		id, _ := strconv.ParseInt(c.Param("id"), 10, 64)
-		data, err := uc.GetChatById(c.Copy().Request.Context(), int(id))
-
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, err.Error())
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"ChatHistory": data})
-	}
-}
 
 func GetBotRespond() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -41,7 +27,7 @@ type Prompt struct {
 	Data2 int    `json:"data2"`
 }
 
-func PostBotPrompt() gin.HandlerFunc {
+func PostUserRespond() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var postData Prompt
 

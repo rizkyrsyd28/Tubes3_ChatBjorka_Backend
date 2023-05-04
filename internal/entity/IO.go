@@ -7,3 +7,13 @@ type Input struct {
 type Output struct {
 	Respond string `json:"respond"`
 }
+
+type HistoryOutput struct {
+	Title   string `json:"title"`
+	IDTitle string `json:"id_title"`
+}
+
+type ChatHistoryOutput struct {
+	User string `json:"user"`
+	Bot  string `json:"bot"`
+}

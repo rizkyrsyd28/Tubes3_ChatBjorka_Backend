@@ -7,6 +7,6 @@ type ChatContent struct {
 }
 
 type ChatHistory struct {
-	IDTitle int           `json:"id_title"`
+	IDTitle string        `json:"id_title"`
 	Chat    []ChatContent `json:"chat_content"`
 }

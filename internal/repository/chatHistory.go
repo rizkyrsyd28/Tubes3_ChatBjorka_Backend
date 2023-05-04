@@ -8,16 +8,16 @@ import (
 )
 
 type ChatHistoryRepo interface {
-	GetChatById(c context.Context, idTitle int) (entity.ChatHistory, error)
-	DelChatById(c context.Context, idTitle int) error
-	AddChat(c context.Context, idTitle int, userChat string, botChat string) error
+	GetChatById(c context.Context, idTitle string) (entity.ChatHistory, error)
+	DelChatById(c context.Context, idTitle string) error
+	AddChat(c context.Context, idTitle string, userChat string, botChat string) error
 }
 
-func (r repo) GetChatById(c context.Context, idTitle int) (chat entity.ChatHistory, err error) {
+func (r repo) GetChatById(c context.Context, idTitle string) (chat entity.ChatHistory, err error) {
 	chatCont := make([]entity.ChatContent, 0)
 	rawChat := make([]struct {
 		IdChat   int    `json:"id_chat"`
-		IdTitle  int    `json:"id_title"`
+		IdTitle  string `json:"id_title"`
 		UserChat string `json:"user_chat"`
 		BotChat  string `json:"bot_chat"`
 	}, 0)
@@ -32,8 +32,8 @@ func (r repo) GetChatById(c context.Context, idTitle int) (chat entity.ChatHisto
 	return chat, err
 }
 
-func (r repo) DelChatById(c context.Context, idTitle int) error {
-	fmt.Println("Masuk Repo Chat")
+func (r repo) DelChatById(c context.Context, idTitle string) error {
+	//fmt.Println("Masuk Repo Chat")
 	const query = "DELETE FROM chat_history WHERE id_title=$1"
 	_, err := r.db.Exec(c, query, idTitle)
 	if err != nil {
@@ -42,7 +42,7 @@ func (r repo) DelChatById(c context.Context, idTitle int) error {
 	return nil
 }
 
-func (r repo) AddChat(c context.Context, idTitle int, userChat string, botChat string) error {
+func (r repo) AddChat(c context.Context, idTitle string, userChat string, botChat string) error {
 	var id int
 	const query = "INSERT INTO chat_history (id_title, user_chat, bot_chat) VALUES ($1, $2, $3) RETURNING id_chat"
 	err := r.db.QueryRow(c, query, idTitle, userChat, botChat).Scan(&id)
