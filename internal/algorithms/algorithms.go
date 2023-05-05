@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -167,7 +168,38 @@ func dateToDay(str string) string {
 	if len(strippedDate) > 0 {
 		strippedDate[0] = strings.ReplaceAll(strippedDate[0], "-", "/")
 		fmt.Println(strippedDate[0])
-		// yyyy/mm/dd
+		year, _ := strconv.Atoi(strippedDate[0][0:4])
+		month, _ := strconv.Atoi(strippedDate[0][5:7])
+		day, _ := strconv.Atoi(strippedDate[0][8:10])
+
+		// fmt.Println(t.Year(), t.Month(), t.Day())
+		if month < 1 || month > 12 {
+			return "Date not valid"
+		}
+		if day < 1 {
+			return "Date not valid"
+		}
+		if month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12 {
+			if day > 31 {
+				return "Date not valid"
+			}
+		}
+		if month == 4 || month == 6 || month == 9 || month == 11 {
+			if day > 30 {
+				return "Date not valid"
+			}
+		}
+		if month == 2 {
+			if year%4 == 0 && (year%100 != 0 || year%400 == 0) {
+				if day > 29 {
+					return "Date not valid"
+				}
+			} else {
+				if day > 28 {
+					return "Date not valid"
+				}
+			}
+		}
 		t, _ := time.Parse("2006/01/02", strippedDate[0])
 		return t.Weekday().String()
 	} else {
