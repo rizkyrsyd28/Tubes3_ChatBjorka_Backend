@@ -19,7 +19,7 @@ func (u usecase) GenerateAnswer(c context.Context, idTitle string, idUser string
 		u.repo.AddHistory(c, idTitle, "New Chat", idUser)
 		fmt.Println("False")
 	}
-	hasil := algorithms.HandleQueries(u.repo, c, input.Message)
+	hasil := algorithms.HandleQueries(u.repo, c, input.Message, input.Algo)
 	result := entity.BotOutput{
 		Message: hasil,
 		IDTitle: idTitle,

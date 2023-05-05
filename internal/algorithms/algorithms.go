@@ -205,7 +205,7 @@ func preprocessQuery(str string) string {
 	return str
 }
 
-func HandleQueries(r repository.Repo, c context.Context, str string) string {
+func HandleQueries(r repository.Repo, c context.Context, str string, algo string) string {
 	// str1 := "Apakah 1+2 sama dengan 3? Siapa wakil presiden indonesia ke-3? Apakah dia benar atau salah. Halo semuanya\n Halohalo"
 	// db := "Test kemiripan dengan string ini sekarang juga"
 	// reader := bufio.NewReader(os.Stdin)
