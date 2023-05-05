@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/jackc/pgx/v5"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 type Repo interface {
 	HistoryRepo
@@ -10,9 +12,9 @@ type Repo interface {
 }
 
 type repo struct {
-	db *pgx.Conn
+	db *pgxpool.Pool
 }
 
-func NewRepo(db *pgx.Conn) repo {
+func NewRepo(db *pgxpool.Pool) repo {
 	return repo{db: db}
 }
