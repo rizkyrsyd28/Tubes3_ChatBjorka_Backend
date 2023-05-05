@@ -2,6 +2,8 @@ package algorithms
 
 import (
 	"fmt"
+	"github.com/rizkyrsyd28/internal/repository"
+	"golang.org/x/net/context"
 	"regexp"
 	"strings"
 	"time"
@@ -203,7 +205,7 @@ func preprocessQuery(str string) string {
 	return str
 }
 
-func handleQueries(str string) string {
+func HandleQueries(r repository.Repo, c context.Context, str string) string {
 	// str1 := "Apakah 1+2 sama dengan 3? Siapa wakil presiden indonesia ke-3? Apakah dia benar atau salah. Halo semuanya\n Halohalo"
 	// db := "Test kemiripan dengan string ini sekarang juga"
 	// reader := bufio.NewReader(os.Stdin)
@@ -217,7 +219,7 @@ func handleQueries(str string) string {
 	// str1 = reSpaces.ReplaceAllString(str1, " ")
 	// fmt.Println(str1)
 	// str1 = string.ReplaceAll(str1)
-
+	//data :=
 	str = strings.ReplaceAll(str, "\n", "")
 	separators := func(sep rune) bool {
 		return sep == '?' || sep == '.' || sep == ';'
@@ -240,16 +242,18 @@ func handleQueries(str string) string {
 			return solveExpression(query)
 		} else if reAddQuestion.MatchString(query) {
 			matches := reAddQuestion.FindStringSubmatch(str)
-			// TODO: Query to db
+			// TODO: Query to db Add
 			question := matches[1]
 			answer := matches[2]
+			r.AddData(c, question, answer)
 			return fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s", question, answer)
 
 		} else if reDeleteQuestion.MatchString(query) {
 			match := reDeleteQuestion.FindStringSubmatch(str)
 
-			// TODO: Query to db
+			// TODO: Query to db Delete
 			question := match[1]
+
 			return fmt.Sprintf("Pertanyaan %s telah dihapus", question)
 
 		} else {
