@@ -2,18 +2,26 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/rizkyrsyd28/internal/entity"
 	"github.com/rizkyrsyd28/internal/usecase"
 	"net/http"
 )
 
-func GetChatHistory(uc usecase.UseCase) gin.HandlerFunc {
+func PostUserRespond(uc usecase.UseCase) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		var input entity.UserInput
+
+		idUser := c.Param("id_user")
 		idTitle := c.Param("id_title")
-		data, err := uc.GetChatById(c.Copy().Request.Context(), idTitle)
+
+		err := c.ShouldBindJSON(&input)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"chatData": data})
+
+		data, err := uc.GenerateAnswer(c.Copy().Request.Context(), idTitle, idUser, input)
+
+		c.JSON(http.StatusOK, data)
 	}
 }

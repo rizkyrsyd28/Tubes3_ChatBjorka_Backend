@@ -29,12 +29,12 @@ func Routes(r *gin.Engine) {
 	r.GET("/chat_history/:id_title", handler.GetChatHistory(ucase))
 
 	// No 3
-	r.POST("/user_respond/:id_user/:id_title", handler.PostUserRespond())
+	r.POST("/user_respond/:id_user/:id_title", handler.PostUserRespond(ucase))
 
 	// No 5
 	r.DELETE("/history/:id_title", handler.DeleteHistory(ucase))
 
 	// No 4
-	r.POST("/history/:id_title") // Rename
+	r.POST("/history/:id_title", handler.RenameTitle(ucase)) // Rename
 
 }

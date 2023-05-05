@@ -35,10 +35,24 @@ func DeleteHistory(uc usecase.UseCase) gin.HandlerFunc {
 	}
 }
 
-//func RenameTitle(uc usecase.UseCase) gin.HandlerFunc {
-//	return func(c *gin.Context) {
-//		idTitle := c.Param("id_title")
-//
-//		c.JSON(http.StatusOK, gin.H{"status": http.StatusOK})
-//	}
-//}
+func RenameTitle(uc usecase.UseCase) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		idTitle := c.Param("id_title")
+		var data struct {
+			New string `json:"nama"`
+		}
+
+		err := c.ShouldBindJSON(&data)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+		err = uc.SetTitleById(c, idTitle, data.New)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"status": data})
+	}
+}

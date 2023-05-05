@@ -9,6 +9,7 @@ import (
 
 type HistoryRepo interface {
 	GetAllHistory(c context.Context, idUser string) ([]entity.History, error)
+	GetHistoryById(c context.Context, idTitle string, idUser string) (entity.History, error)
 	AddHistory(c context.Context, idTitle string, title string, idUser string) error
 	DelHistoryById(c context.Context, idTitle string) error
 	SetTitleById(c context.Context, idTitle string, newTitle string) error
@@ -22,6 +23,12 @@ func (r repo) GetAllHistory(c context.Context, idUser string) ([]entity.History,
 		return nil, err
 	}
 	return result, nil
+}
+
+func (r repo) GetHistoryById(c context.Context, idTitle string, idUser string) (result entity.History, err error) {
+	const query = "SELECT * FROM title_history WHERE id_title=$1 AND id_user=$2"
+	err = r.db.QueryRow(c, query, idTitle, idUser).Scan(&result.IDTitle, &result.Title, &result.IDUser)
+	return result, err
 }
 
 func (r repo) AddHistory(c context.Context, idTitle string, title string, idUser string) error {

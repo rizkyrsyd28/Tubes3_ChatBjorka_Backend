@@ -5,6 +5,7 @@ import "github.com/rizkyrsyd28/internal/repository"
 type UseCase interface {
 	HistoryUseCase
 	ChatHistoryUseCase
+	ChatBotUseCase
 }
 
 type usecase struct {

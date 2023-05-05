@@ -10,6 +10,7 @@ type HistoryUseCase interface {
 	GetAllHistory(c context.Context, idUser string) ([]entity.HistoryOutput, error)
 	AddHistory(c context.Context, idTitle string, title string, idUser string) error
 	DelHistoryById(c context.Context, idTitle string) error
+	SetTitleById(c context.Context, idTitle string, newTitle string) error
 }
 
 func (u usecase) GetAllHistory(c context.Context, idUser string) ([]entity.HistoryOutput, error) {
@@ -43,4 +44,8 @@ func (u usecase) DelHistoryById(c context.Context, idTitle string) error {
 		return err
 	}
 	return u.repo.DelHistoryById(c, idTitle)
+}
+
+func (u usecase) SetTitleById(c context.Context, idTitle string, newTitle string) error {
+	return u.repo.SetTitleById(c, idTitle, newTitle)
 }
