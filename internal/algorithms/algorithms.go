@@ -213,6 +213,7 @@ func preprocessQuery(str string) string {
 type QnaDistance struct {
 	Question string
 	Distance float64
+	Answer   string
 }
 
 // Functions for sorting QnaDistance
@@ -326,13 +327,13 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 				if len(qnaProcessed) != len(query) {
 					levDist := levenshteinDistance(qnaProcessed, query)
 					perct := distToPercentage(levDist, qnaProcessed, query)
-					distances = append(distances, QnaDistance{qnaProcessed, perct})
+					distances = append(distances, QnaDistance{qnaProcessed, perct, qna.Answer})
 				} else {
 					if algo == "KMP" {
 						if kmpSearch(qnaProcessed, query) == -1 {
 							levDist := levenshteinDistance(qnaProcessed, query)
 							perct := distToPercentage(levDist, qnaProcessed, query)
-							distances = append(distances, QnaDistance{qnaProcessed, perct})
+							distances = append(distances, QnaDistance{qnaProcessed, perct, qna.Answer})
 						} else {
 							result += fmt.Sprintf("%s\n", qna.Answer)
 							foundExact = true
@@ -342,7 +343,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 						if bmSearch(qnaProcessed, query) == -1 {
 							levDist := levenshteinDistance(qnaProcessed, query)
 							perct := distToPercentage(levDist, qnaProcessed, query)
-							distances = append(distances, QnaDistance{qnaProcessed, perct})
+							distances = append(distances, QnaDistance{qnaProcessed, perct, qna.Answer})
 						} else {
 							result += fmt.Sprintf("%s\n", qna.Answer)
 							foundExact = true
@@ -355,15 +356,17 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 			if !foundExact {
 				sort.Sort(ByDistance(distances))
 				fmt.Println(distances)
-				result += "Pertanyaan tidak ditemukan di database.\nApakah maksud anda:\n"
-
-				for i := 0; i < len(distances); i++ {
-					result += fmt.Sprintf("%d. %s\n", i+1, distances[i].Question)
+				if distances[0].Distance >= 90 {
+					result += fmt.Sprintf("%s\n", distances[0].Answer)
+				} else {
+					result += "Pertanyaan tidak ditemukan di database.\nApakah maksud anda:\n"
+					for i := 0; i < len(distances); i++ {
+						result += fmt.Sprintf("%d. %s\n", i+1, distances[i].Question)
+					}
 				}
 			}
 
 		}
 	}
-
 	return result
 }
