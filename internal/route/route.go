@@ -35,6 +35,6 @@ func Routes(r *gin.Engine) {
 	r.DELETE("/delete_history/:id_title", handler.DeleteHistory(ucase))
 
 	// No 4
-	r.POST("/rename_history/:id_title", handler.RenameTitle(ucase)) // Rename
+	r.POST("/rename_history/:id_title", handler.RenameTitle(ucase))
 
 }
