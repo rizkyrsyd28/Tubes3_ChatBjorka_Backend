@@ -41,7 +41,6 @@ func RenameTitle(uc usecase.UseCase) gin.HandlerFunc {
 		var data struct {
 			New string `json:"nama"`
 		}
-
 		err := c.ShouldBindJSON(&data)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, err.Error())
