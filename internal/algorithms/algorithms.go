@@ -267,6 +267,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 		}
 
 		query = preprocessQuery(query)
+		fmt.Println(query)
 		if reDate.MatchString(query) {
 			dateStr, _ := dateToDay(query)
 			result += fmt.Sprintf("%s\n", dateStr)
