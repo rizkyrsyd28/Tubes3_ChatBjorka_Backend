@@ -2,11 +2,13 @@ package algorithms
 
 import (
 	"fmt"
-	"github.com/rizkyrsyd28/internal/repository"
-	"golang.org/x/net/context"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
+
+	"github.com/rizkyrsyd28/internal/repository"
+	"golang.org/x/net/context"
 
 	"github.com/Knetic/govaluate"
 )
@@ -168,7 +170,7 @@ func dateToDay(str string) (string, error) {
 		t, _ := time.Parse("2006/01/02", strippedDate[0])
 		return t.Weekday().String(), nil
 	} else {
-		return time.Monday.String(), fmt.Errorf("Does not contain date pattern")
+		return time.Monday.String(), fmt.Errorf("does not contain date pattern")
 	}
 }
 
@@ -200,12 +202,36 @@ func preprocessQuery(str string) string {
 	reSpaces := regexp.MustCompile(`\s+`)
 	str = reSpaces.ReplaceAllString(str, " ")
 
+	re := regexp.MustCompile(`[!?;.]`)
+	str = re.ReplaceAllString(str, "")
+
 	str = strings.TrimLeft(str, " ")
 	str = strings.TrimRight(str, " ")
 	return str
 }
 
+type QnaDistance struct {
+	Question string
+	Distance float64
+}
+
+// Functions for sorting QnaDistance
+type ByDistance []QnaDistance
+
+func (a ByDistance) Len() int {
+	return len(a)
+}
+
+func (a ByDistance) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a ByDistance) Less(i, j int) bool {
+	return a[i].Distance < a[j].Distance
+}
+
 func HandleQueries(r repository.Repo, c context.Context, str string, algo string) string {
+	fmt.Println("TESTING1")
 	// str1 := "Apakah 1+2 sama dengan 3? Siapa wakil presiden indonesia ke-3? Apakah dia benar atau salah. Halo semuanya\n Halohalo"
 	// db := "Test kemiripan dengan string ini sekarang juga"
 	// reader := bufio.NewReader(os.Stdin)
@@ -222,7 +248,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 	//data :=
 	str = strings.ReplaceAll(str, "\n", "")
 	separators := func(sep rune) bool {
-		return sep == '?' || sep == '.' || sep == ';'
+		return sep == '?' || sep == '.' || sep == ';' || sep == '!'
 	}
 	queries := strings.FieldsFunc(str, separators)
 	// fmt.Println("Queries:", queries)
@@ -232,21 +258,39 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 	reAddQuestion := regexp.MustCompile(`^\s*tambah pertanyaan (.+) dengan jawaban (.+)$`)
 	reDeleteQuestion := regexp.MustCompile(`^\s*hapus pertanyaan (.+)$`)
 
+	result := ""
 	for _, query := range queries {
+		fmt.Println("TESTING1")
+		allData, err := r.GetAllData(c)
+		if err != nil {
+			return "Fetch data error"
+		}
+
 		query = preprocessQuery(query)
-		fmt.Println("preprocesed query:", query)
 		if reDate.MatchString(query) {
 			dateStr, _ := dateToDay(query)
-			return dateStr
+			result += fmt.Sprintf("%s\n", dateStr)
 		} else if reArithmetic.MatchString(query) {
-			return solveExpression(query)
+			result += fmt.Sprintf("%s\n", solveExpression(query))
 		} else if reAddQuestion.MatchString(query) {
 			matches := reAddQuestion.FindStringSubmatch(str)
 			// TODO: Query to db Add
 			question := matches[1]
 			answer := matches[2]
-			r.AddData(c, question, answer)
-			return fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s", question, answer)
+			found := false
+			for _, qna := range allData {
+				if question == qna.Question {
+					r.DeleteDataById(c, qna.IDQna)
+					r.AddData(c, preprocessQuery(question), preprocessQuery(answer))
+					result += fmt.Sprintf("Pertanyaan %s sudah ada! Jawaban di update ke %s.\n", question, answer)
+					found = true
+					break
+				}
+			}
+			if !found {
+				r.AddData(c, question, answer)
+				result += fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s.\n", question, answer)
+			}
 
 		} else if reDeleteQuestion.MatchString(query) {
 			match := reDeleteQuestion.FindStringSubmatch(str)
@@ -254,39 +298,69 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 			// TODO: Query to db Delete
 			question := match[1]
 
-			return fmt.Sprintf("Pertanyaan %s telah dihapus", question)
+			found := false
+			for _, qna := range allData {
+				qnaProcessed := preprocessQuery(qna.Question)
+				if question == qnaProcessed {
+					r.DeleteDataById(c, qna.IDQna)
+					result += fmt.Sprintf("Pertanyaan %s telah dihapus.\n", question)
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				result += fmt.Sprintf("Tidak ada pertanyaan %s pada database!\n", question)
+			}
 
 		} else {
 			// TODO: Match from database
+			fmt.Println("TESTING MATCHING")
+			var distances []QnaDistance
 
-			// fmt.Println("Matching...")
-			// fmt.Println("KMP")
-			// if len(db) != len(query) {
-			// 	levDist := levenshteinDistance(db, query)
-			// 	perct := distToPercentage(levDist, db, query)
-			// 	fmt.Println("Percentage:", perct)
-			// 	if perct < 90 {
-			// 		fmt.Println("tidak mirip")
-			// 	} else {
-			// 		fmt.Println("mirip")
-			// 	}
-			// } else {
-			// 	if kmpSearch(db, query) == -1 {
-			// 		levDist := levenshteinDistance(db, query)
-			// 		perct := distToPercentage(levDist, db, query)
-			// 		fmt.Println("Percentage:", perct)
-			// 		if perct < 90 {
-			// 			fmt.Println("tidak mirip")
-			// 		} else {
-			// 			fmt.Println("mirip")
-			// 		}
-			// 	} else {
-			// 		fmt.Println("Exact match !!!")
-			// 	}
-			// }
-			return ""
+			foundExact := false
+			for _, qna := range allData {
+				qnaProcessed := preprocessQuery(qna.Question)
+				if len(qnaProcessed) != len(query) {
+					levDist := levenshteinDistance(qnaProcessed, query)
+					perct := distToPercentage(levDist, qnaProcessed, query)
+					distances = append(distances, QnaDistance{qnaProcessed, perct})
+				} else {
+					if algo == "KMP" {
+						if kmpSearch(qnaProcessed, query) == -1 {
+							levDist := levenshteinDistance(qnaProcessed, query)
+							perct := distToPercentage(levDist, qnaProcessed, query)
+							distances = append(distances, QnaDistance{qnaProcessed, perct})
+						} else {
+							result += fmt.Sprintf("%s\n", qna.Answer)
+							foundExact = true
+							break
+						}
+					} else {
+						if bmSearch(qnaProcessed, query) == -1 {
+							levDist := levenshteinDistance(qnaProcessed, query)
+							perct := distToPercentage(levDist, qnaProcessed, query)
+							distances = append(distances, QnaDistance{qnaProcessed, perct})
+						} else {
+							result += fmt.Sprintf("%s\n", qna.Answer)
+							foundExact = true
+							break
+						}
+					}
+				}
+			}
+
+			if !foundExact {
+				sort.Sort(ByDistance(distances))
+				result += "Pertanyaan tidak ditemukan di database.\nApakah maksud anda:\n"
+
+				for i := 0; i < len(distances); i++ {
+					result += fmt.Sprintf("%d. %s\n", i+1, distances[i].Question)
+				}
+			}
+
 		}
 	}
 
-	return "Empty query"
+	return result
 }
