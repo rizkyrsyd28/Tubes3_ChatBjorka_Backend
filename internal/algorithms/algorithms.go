@@ -227,7 +227,7 @@ func (a ByDistance) Swap(i, j int) {
 }
 
 func (a ByDistance) Less(i, j int) bool {
-	return a[i].Distance < a[j].Distance
+	return a[i].Distance > a[j].Distance
 }
 
 func HandleQueries(r repository.Repo, c context.Context, str string, algo string) string {
@@ -354,6 +354,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 
 			if !foundExact {
 				sort.Sort(ByDistance(distances))
+				fmt.Println(distances)
 				result += "Pertanyaan tidak ditemukan di database.\nApakah maksud anda:\n"
 
 				for i := 0; i < len(distances); i++ {
