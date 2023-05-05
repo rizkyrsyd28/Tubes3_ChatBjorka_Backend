@@ -240,7 +240,7 @@ func handleQueries(str string) string {
 			return solveExpression(query)
 		} else if reAddQuestion.MatchString(query) {
 			matches := reAddQuestion.FindStringSubmatch(str)
-			// Query to db
+			// TODO: Query to db
 			question := matches[1]
 			answer := matches[2]
 			return fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s", question, answer)
@@ -248,12 +248,12 @@ func handleQueries(str string) string {
 		} else if reDeleteQuestion.MatchString(query) {
 			match := reDeleteQuestion.FindStringSubmatch(str)
 
-			// Query to db
+			// TODO: Query to db
 			question := match[1]
 			return fmt.Sprintf("Pertanyaan %s telah dihapus", question)
 
 		} else {
-			// Match from database
+			// TODO: Match from database
 
 			// fmt.Println("Matching...")
 			// fmt.Println("KMP")
