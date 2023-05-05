@@ -251,7 +251,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 		return sep == '?' || sep == '.' || sep == ';' || sep == '!'
 	}
 	queries := strings.FieldsFunc(str, separators)
-	// fmt.Println("Queries:", queries)
+	fmt.Println("Queries:", queries)
 
 	reArithmetic := regexp.MustCompile(`^(berapa|hasil dari|hitunglah|hitung|berapakah)?[0-9+\-*/()\s]+$`)
 	reDate := regexp.MustCompile(`^\s*(hari|hari apa)?\s*[0-9]{4}/[0-9]{2}/[0-9]{2}\s*\?*\s*$`)
@@ -274,7 +274,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 		} else if reArithmetic.MatchString(query) {
 			result += fmt.Sprintf("%s\n", solveExpression(query))
 		} else if reAddQuestion.MatchString(query) {
-			matches := reAddQuestion.FindStringSubmatch(str)
+			matches := reAddQuestion.FindStringSubmatch(query)
 			// TODO: Query to db Add
 			question := matches[1]
 			answer := matches[2]
@@ -294,9 +294,10 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 			}
 
 		} else if reDeleteQuestion.MatchString(query) {
-			match := reDeleteQuestion.FindStringSubmatch(str)
+			match := reDeleteQuestion.FindStringSubmatch(query)
 
 			// TODO: Query to db Delete
+			fmt.Println(match)
 			question := match[1]
 
 			found := false
