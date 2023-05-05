@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+
 	"github.com/rizkyrsyd28/internal/algorithms"
 	"github.com/rizkyrsyd28/internal/entity"
 	"golang.org/x/net/context"
@@ -19,7 +20,7 @@ func (u usecase) GenerateAnswer(c context.Context, idTitle string, idUser string
 		u.repo.AddHistory(c, idTitle, "New Chat", idUser)
 		fmt.Println("False")
 	}
-	hasil := algorithms.HandleQueries(u.repo, c, input.Message)
+	hasil := algorithms.HandleQueries(u.repo, c, input.Message, input.Algo)
 	result := entity.BotOutput{
 		Message: hasil,
 		IDTitle: idTitle,

@@ -23,9 +23,9 @@ func (r repo) GetAllData(c context.Context) ([]entity.Qna, error) {
 }
 
 func (r repo) AddData(c context.Context, quest string, ans string) error {
-	var id int
-	const query = "INSERT INTO qna (user_chat, bot_chat) VALUES ($1, $2) RETURNING id_qna"
-	err := r.db.QueryRow(c, query, quest, ans).Scan(&id)
+	//var id int
+	const query = "INSERT INTO qna (question, answer) VALUES ($1, $2)"
+	_, err := r.db.Exec(c, query, quest, ans)
 	if err != nil {
 		return err
 	}
