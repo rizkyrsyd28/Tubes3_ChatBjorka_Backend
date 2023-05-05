@@ -65,8 +65,7 @@ func kmpSearch(text string, pattern string) int {
 		if pattern[j] == text[i] {
 			if j == lenPattern-1 {
 				return i - lenPattern + 1
-				// fmt.Println("Found at", i-lenPattern+1)
-				// j = lps[j-1]
+
 			}
 			i++
 			j++
@@ -107,10 +106,6 @@ func bmSearch(text string, pattern string) int {
 		if pattern[j] == text[i] {
 			if j == 0 {
 				return i
-				// fmt.Println("Found at", i)
-				// lo := lastOcc[text[i]]
-				// i = i + lenPattern - min(j, i+lo)
-				// j = lenPattern - 1
 			} else {
 				i--
 				j--
@@ -172,7 +167,6 @@ func dateToDay(str string) string {
 		month, _ := strconv.Atoi(strippedDate[0][5:7])
 		day, _ := strconv.Atoi(strippedDate[0][8:10])
 
-		// fmt.Println(t.Year(), t.Month(), t.Day())
 		if month < 1 || month > 12 {
 			return "Date not valid"
 		}
@@ -272,7 +266,6 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 		return sep == '?' || sep == '.' || sep == ';' || sep == '!'
 	}
 	queries := strings.FieldsFunc(str, separators)
-	// fmt.Println("Queries:", queries)
 
 	reArithmetic := regexp.MustCompile(`^(berapa|hasil dari|hitunglah|hitung|berapakah)?[0-9+\-*/()\s]+$`)
 	reDate := regexp.MustCompile(`^\s*(hari|hari apa)?\s*[0-9]{4}/[0-9]{2}/[0-9]{2}\s*\?*\s*$`)
@@ -288,7 +281,6 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 		}
 
 		query = preprocessQuery(query)
-		// fmt.Println(query)
 		if reDate.MatchString(query) {
 			dateStr := dateToDay(query)
 			result += fmt.Sprintf("%s\n", dateStr)
@@ -298,21 +290,6 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 			matches := reAddQuestion.FindStringSubmatch(query)
 			question := matches[1]
 			answer := matches[2]
-
-			// for _, qna := range allData {
-			// 	if question == qna.Question {
-			// 		r.DeleteDataById(c, qna.IDQna)
-			// 		r.AddData(c, preprocessQuery(question), preprocessQuery(answer))
-			// 		result += fmt.Sprintf("Pertanyaan %s sudah ada! Jawaban di update ke %s.\n", question, answer)
-			// 		found = true
-			// 		break
-			// 	}
-			// }
-
-			// if !found {
-			// 	r.AddData(c, question, answer)
-			// 	result += fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s.\n", question, answer)
-			// }
 
 			var distances []QnaDistance
 
