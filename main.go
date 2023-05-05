@@ -18,7 +18,7 @@ func main() {
 
 	// Add CORS middleware
 	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"https://saddamannais.github.io/Tubes3_13521109"}
+	config.AllowOrigins = []string{"http://localhost:3000", "https://saddamannais.github.io/Tubes3_13521109/"}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
 	r.Use(cors.New(config))
 
