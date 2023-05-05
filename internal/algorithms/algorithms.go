@@ -358,10 +358,15 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 				fmt.Println(distances)
 				if distances[0].Distance >= 90 {
 					result += fmt.Sprintf("%s\n", distances[0].Answer)
+				} else if distances[0].Distance <= 30 {
+					result += "Pertanyaan tidak dapat dihandle oleh fitur yang ada (pertanyaan terlalu acak).\n"
 				} else {
 					result += "Pertanyaan tidak ditemukan di database.\nApakah maksud anda:\n"
 					for i := 0; i < len(distances); i++ {
 						result += fmt.Sprintf("%d. %s\n", i+1, distances[i].Question)
+						if i == 2 {
+							break
+						}
 					}
 				}
 			}
