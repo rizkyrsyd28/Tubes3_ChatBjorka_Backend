@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -64,8 +65,7 @@ func kmpSearch(text string, pattern string) int {
 		if pattern[j] == text[i] {
 			if j == lenPattern-1 {
 				return i - lenPattern + 1
-				// fmt.Println("Found at", i-lenPattern+1)
-				// j = lps[j-1]
+
 			}
 			i++
 			j++
@@ -106,10 +106,6 @@ func bmSearch(text string, pattern string) int {
 		if pattern[j] == text[i] {
 			if j == 0 {
 				return i
-				// fmt.Println("Found at", i)
-				// lo := lastOcc[text[i]]
-				// i = i + lenPattern - min(j, i+lo)
-				// j = lenPattern - 1
 			} else {
 				i--
 				j--
@@ -161,16 +157,47 @@ func distToPercentage(levDist int, str1 string, str2 string) float64 {
 	return (float64(maxlen-levDist) / float64(maxlen)) * 100
 }
 
-func dateToDay(str string) (string, error) {
+func dateToDay(str string) string {
 	reDate := regexp.MustCompile(`[0-9]{4}/[0-9]{2}/[0-9]{2}`)
 	strippedDate := reDate.FindStringSubmatch(str)
 	if len(strippedDate) > 0 {
 		strippedDate[0] = strings.ReplaceAll(strippedDate[0], "-", "/")
 		fmt.Println(strippedDate[0])
+		year, _ := strconv.Atoi(strippedDate[0][0:4])
+		month, _ := strconv.Atoi(strippedDate[0][5:7])
+		day, _ := strconv.Atoi(strippedDate[0][8:10])
+
+		if month < 1 || month > 12 {
+			return "Date not valid"
+		}
+		if day < 1 {
+			return "Date not valid"
+		}
+		if month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12 {
+			if day > 31 {
+				return "Date not valid"
+			}
+		}
+		if month == 4 || month == 6 || month == 9 || month == 11 {
+			if day > 30 {
+				return "Date not valid"
+			}
+		}
+		if month == 2 {
+			if year%4 == 0 && (year%100 != 0 || year%400 == 0) {
+				if day > 29 {
+					return "Date not valid"
+				}
+			} else {
+				if day > 28 {
+					return "Date not valid"
+				}
+			}
+		}
 		t, _ := time.Parse("2006/01/02", strippedDate[0])
-		return t.Weekday().String(), nil
+		return t.Weekday().String()
 	} else {
-		return time.Monday.String(), fmt.Errorf("does not contain date pattern")
+		return "Date not valid"
 	}
 }
 
@@ -211,6 +238,7 @@ func preprocessQuery(str string) string {
 }
 
 type QnaDistance struct {
+	IDQna    int
 	Question string
 	Distance float64
 	Answer   string
@@ -233,26 +261,11 @@ func (a ByDistance) Less(i, j int) bool {
 
 func HandleQueries(r repository.Repo, c context.Context, str string, algo string) string {
 	fmt.Println("TESTING1")
-	// str1 := "Apakah 1+2 sama dengan 3? Siapa wakil presiden indonesia ke-3? Apakah dia benar atau salah. Halo semuanya\n Halohalo"
-	// db := "Test kemiripan dengan string ini sekarang juga"
-	// reader := bufio.NewReader(os.Stdin)
-	// fmt.Print("Input here: ")
-	// str1, err := reader.ReadString('\n')
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// reSpaces := regexp.MustCompile(`\s+`)
-	// str1 = reSpaces.ReplaceAllString(str1, " ")
-	// fmt.Println(str1)
-	// str1 = string.ReplaceAll(str1)
-	//data :=
 	str = strings.ReplaceAll(str, "\n", "")
 	separators := func(sep rune) bool {
 		return sep == '?' || sep == '.' || sep == ';' || sep == '!'
 	}
 	queries := strings.FieldsFunc(str, separators)
-	fmt.Println("Queries:", queries)
 
 	reArithmetic := regexp.MustCompile(`^(berapa|hasil dari|hitunglah|hitung|berapakah)?[0-9+\-*/()\s]+$`)
 	reDate := regexp.MustCompile(`^\s*(hari|hari apa)?\s*[0-9]{4}/[0-9]{2}/[0-9]{2}\s*\?*\s*$`)
@@ -268,56 +281,125 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 		}
 
 		query = preprocessQuery(query)
-		fmt.Println(query)
 		if reDate.MatchString(query) {
-			dateStr, _ := dateToDay(query)
+			dateStr := dateToDay(query)
 			result += fmt.Sprintf("%s\n", dateStr)
 		} else if reArithmetic.MatchString(query) {
 			result += fmt.Sprintf("%s\n", solveExpression(query))
 		} else if reAddQuestion.MatchString(query) {
 			matches := reAddQuestion.FindStringSubmatch(query)
-			// TODO: Query to db Add
 			question := matches[1]
 			answer := matches[2]
-			found := false
+
+			var distances []QnaDistance
+
+			foundExact := false
 			for _, qna := range allData {
-				if question == qna.Question {
-					r.DeleteDataById(c, qna.IDQna)
-					r.AddData(c, preprocessQuery(question), preprocessQuery(answer))
-					result += fmt.Sprintf("Pertanyaan %s sudah ada! Jawaban di update ke %s.\n", question, answer)
-					found = true
-					break
+				qnaProcessed := preprocessQuery(qna.Question)
+				if len(qnaProcessed) != len(question) {
+					levDist := levenshteinDistance(qnaProcessed, question)
+					perct := distToPercentage(levDist, qnaProcessed, question)
+					distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
+				} else {
+					if algo == "KMP" {
+						if kmpSearch(qnaProcessed, question) == -1 {
+							levDist := levenshteinDistance(qnaProcessed, question)
+							perct := distToPercentage(levDist, qnaProcessed, question)
+							distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
+						} else {
+							r.DeleteDataById(c, qna.IDQna)
+							r.AddData(c, preprocessQuery(question), preprocessQuery(answer))
+							result += fmt.Sprintf("Pertanyaan %s sudah ada! Jawaban di update ke %s.\n", question, answer)
+							foundExact = true
+							break
+						}
+					} else {
+						if bmSearch(qnaProcessed, question) == -1 {
+							levDist := levenshteinDistance(qnaProcessed, question)
+							perct := distToPercentage(levDist, qnaProcessed, question)
+							distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
+						} else {
+							r.DeleteDataById(c, qna.IDQna)
+							r.AddData(c, preprocessQuery(question), preprocessQuery(answer))
+							result += fmt.Sprintf("Pertanyaan %s sudah ada! Jawaban di update ke %s.\n", question, answer)
+							foundExact = true
+							break
+						}
+					}
 				}
 			}
-			if !found {
-				r.AddData(c, question, answer)
-				result += fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s.\n", question, answer)
+
+			if !foundExact {
+				sort.Sort(ByDistance(distances))
+				if distances[0].Distance >= 90 {
+					r.DeleteDataById(c, distances[0].IDQna)
+					r.AddData(c, preprocessQuery(distances[0].Question), preprocessQuery(answer))
+					result += fmt.Sprintf("Pertanyaan %s sudah ada! Jawaban di update ke %s.\n", distances[0].Question, answer)
+				} else {
+					r.AddData(c, preprocessQuery(question), preprocessQuery(answer))
+					result += fmt.Sprintf("Pertanyaan %s telah ditambah dengan jawaban %s.\n", question, answer)
+				}
 			}
 
 		} else if reDeleteQuestion.MatchString(query) {
 			match := reDeleteQuestion.FindStringSubmatch(query)
-
-			// TODO: Query to db Delete
-			fmt.Println(match)
 			question := match[1]
+			fmt.Println("Question yg mau didelet", question)
 
-			found := false
+			var distances []QnaDistance
+
+			foundExact := false
 			for _, qna := range allData {
 				qnaProcessed := preprocessQuery(qna.Question)
-				if question == qnaProcessed {
-					r.DeleteDataById(c, qna.IDQna)
-					result += fmt.Sprintf("Pertanyaan %s telah dihapus.\n", question)
-					found = true
-					break
+				if len(qnaProcessed) != len(question) {
+					levDist := levenshteinDistance(qnaProcessed, question)
+					perct := distToPercentage(levDist, qnaProcessed, question)
+					distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
+				} else {
+					if algo == "KMP" {
+						if kmpSearch(qnaProcessed, question) == -1 {
+							levDist := levenshteinDistance(qnaProcessed, question)
+							perct := distToPercentage(levDist, qnaProcessed, question)
+							distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
+						} else {
+							r.DeleteDataById(c, qna.IDQna)
+							result += fmt.Sprintf("Pertanyaan %s telah dihapus.\n", question)
+							foundExact = true
+							break
+						}
+					} else {
+						if bmSearch(qnaProcessed, question) == -1 {
+							levDist := levenshteinDistance(qnaProcessed, question)
+							perct := distToPercentage(levDist, qnaProcessed, question)
+							distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
+						} else {
+							r.DeleteDataById(c, qna.IDQna)
+							result += fmt.Sprintf("Pertanyaan %s telah dihapus.\n", question)
+							foundExact = true
+							break
+						}
+					}
 				}
 			}
 
-			if !found {
-				result += fmt.Sprintf("Tidak ada pertanyaan %s pada database!\n", question)
+			if !foundExact {
+				sort.Sort(ByDistance(distances))
+				fmt.Println(distances)
+				if distances[0].Distance >= 90 {
+					r.DeleteDataById(c, distances[0].IDQna)
+					result += fmt.Sprintf("Pertanyaan %s telah dihapus.\n", distances[0].Question)
+				} else {
+					result += fmt.Sprintf("Tidak ada pertanyaan %s pada database!\nApakah maksud anda:\n", question)
+					for i := 0; i < len(distances); i++ {
+						result += fmt.Sprintf("%d. %s\n", i+1, distances[i].Question)
+						if i == 2 {
+							break
+						}
+					}
+				}
 			}
 
 		} else {
-			// TODO: Match from database
 			fmt.Println("TESTING MATCHING")
 			var distances []QnaDistance
 
@@ -327,13 +409,13 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 				if len(qnaProcessed) != len(query) {
 					levDist := levenshteinDistance(qnaProcessed, query)
 					perct := distToPercentage(levDist, qnaProcessed, query)
-					distances = append(distances, QnaDistance{qnaProcessed, perct, qna.Answer})
+					distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
 				} else {
 					if algo == "KMP" {
 						if kmpSearch(qnaProcessed, query) == -1 {
 							levDist := levenshteinDistance(qnaProcessed, query)
 							perct := distToPercentage(levDist, qnaProcessed, query)
-							distances = append(distances, QnaDistance{qnaProcessed, perct, qna.Answer})
+							distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
 						} else {
 							result += fmt.Sprintf("%s\n", qna.Answer)
 							foundExact = true
@@ -343,7 +425,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 						if bmSearch(qnaProcessed, query) == -1 {
 							levDist := levenshteinDistance(qnaProcessed, query)
 							perct := distToPercentage(levDist, qnaProcessed, query)
-							distances = append(distances, QnaDistance{qnaProcessed, perct, qna.Answer})
+							distances = append(distances, QnaDistance{qna.IDQna, qnaProcessed, perct, qna.Answer})
 						} else {
 							result += fmt.Sprintf("%s\n", qna.Answer)
 							foundExact = true
@@ -359,7 +441,7 @@ func HandleQueries(r repository.Repo, c context.Context, str string, algo string
 				if distances[0].Distance >= 90 {
 					result += fmt.Sprintf("%s\n", distances[0].Answer)
 				} else if distances[0].Distance <= 30 {
-					result += "Pertanyaan tidak dapat dihandle oleh fitur yang ada (pertanyaan terlalu acak).\n"
+					result += "Pertanyaan tidak dapat dihandle oleh fitur yang ada (pertanyaan terlalu acak jika dibandingkan dengan database).\n"
 				} else {
 					result += "Pertanyaan tidak ditemukan di database.\nApakah maksud anda:\n"
 					for i := 0; i < len(distances); i++ {
