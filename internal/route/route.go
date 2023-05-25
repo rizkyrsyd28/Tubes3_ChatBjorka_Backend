@@ -13,7 +13,7 @@ import (
 
 func Routes(r *gin.Engine) {
 	// Connect DB
-	conn, err := pgxpool.New(context.Background(), "postgres://stima3_admin@stima3-chat:Rizkyrasy.id28@stima3-chat.postgres.database.azure.com:5432/stima3?sslmode=require")
+	conn, err := pgxpool.New(context.Background(), "DB_URL")
 	if err != nil {
 		fmt.Fprint(os.Stderr, "Unable to Connect to Database : %v\n", err)
 		os.Exit(1)
